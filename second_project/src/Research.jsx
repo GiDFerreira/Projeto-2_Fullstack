@@ -1,81 +1,31 @@
-import React from "react";
+import { useState, Suspense, lazy } from "react";
+import Loading from "./loading";
+import Preview from "./preview";
 
-async function fetchData(disneyCharacterInput, errorMessageElement, charactersContainer) {
-    try {
-        const disneyCharacter = document.getElementById("disneyCharacter").value.trim().toLowerCase();
-        
-        const errorMessageElement = document.getElementById("errorMessage");
-        errorMessageElement.textContent = "";
-
-        if (disneyCharacter.length < 1 || disneyCharacter.length > 25) {
-            errorMessageElement.textContent = "O nome do personagem deve ter entre 1 e 25 caracteres.";
-            return;        
-        }
-
-        const response = await fetch(`https://api.disneyapi.dev/character?name=${disneyCharacter}`);
-
-        if (!response.ok) {
-            throw new Error("Não foi possível buscar os dados dos personagens");
-        }
-
-        const data = await response.json();
-        const filteredCharacters = data.data;
-
-        const charactersContainer = document.getElementById("charactersContainer");
-        charactersContainer.innerHTML = "";
-
-        if (filteredCharacters.length > 0) {
-            filteredCharacters.forEach(character => {
-                const characterDiv = document.createElement("div");
-                characterDiv.classList.add("character");
-
-                const characterNameElement = document.createElement("h3");
-                characterNameElement.textContent = character.name;
-
-                const characterImage = document.createElement("img");
-                characterImage.src = character.imageUrl;
-                characterImage.alt = character.name;
-
-                const filmsListElement = document.createElement("ul");
-                const films = character.films || [];
-                if (films.length > 0) {
-                    films.map(film => {
-                        const filmItemElement = document.createElement("li");
-                        filmItemElement.textContent = film;
-                        filmsListElement.appendChild(filmItemElement);
-                    });
-                } else {
-                    const noFilmsMessage = document.createElement("p");
-                    noFilmsMessage.textContent = "Esse personagem não possui filmes";
-                    filmsListElement.appendChild(noFilmsMessage);
-                }
-
-                characterDiv.appendChild(characterNameElement);
-                characterDiv.appendChild(characterImage);
-                characterDiv.appendChild(filmsListElement);
-                charactersContainer.appendChild(characterDiv);
-            });
-        } else {
-            charactersContainer.textContent = "Nenhum personagem encontrado com esse nome.";
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-function Research(){
+function Research() {
+    const [characters, setCharacters] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         const disneyCharacterInput = document.getElementById("disneyCharacter");
         const errorMessageElement = document.getElementById("errorMessage");
-        const charactersContainer = document.getElementById("charactersContainer");
-        
-        await fetchData(disneyCharacterInput, errorMessageElement, charactersContainer);
-    }
-    
-    return(
+
+        try {
+            const disneyCharacter = disneyCharacterInput.value.trim().toLowerCase();
+            setLoading(true); // Definir o estado de carregamento como true
+            const data = await Preview(disneyCharacter);
+            setCharacters(data);
+            setLoading(false); // Definir o estado de carregamento como false quando os dados estiverem prontos
+        } catch (error) {
+            console.error(error);
+            errorMessageElement.textContent = "Erro ao buscar os dados dos personagens.";
+            setLoading(false); // Definir o estado de carregamento como false em caso de erro
+        }
+    };
+
+    return (
         <div>
             <form onSubmit={handleSubmit}>
                 <input
@@ -86,9 +36,31 @@ function Research(){
                 <button type="submit">Buscar</button>
             </form>
             <p id="errorMessage"></p>
-            <div id="charactersContainer"></div>
+            <div id="charactersContainer">
+                {loading ? ( // Verificar se está carregando
+                    <Loading />
+                ) : (
+                    <Suspense fallback={<div>Carregando...</div>}>
+                        {characters.map((character, index) => (
+                            <div key={index}>
+                                <h2>{character.name}</h2>
+                                <img src={character.imageUrl} alt={character.name} />
+                                <ul>
+                                    {character.films && character.films.length > 0 ? (
+                                        character.films.map((film, index) => (
+                                            <li key={index}>{film}</li>
+                                        ))
+                                    ) : (
+                                        <li>Esse personagem não possui filmes</li>
+                                    )}
+                                </ul>
+                            </div>
+                        ))}
+                    </Suspense>
+                )}
+            </div>
         </div>
     );
 }
 
-export default Research
+export default Research;
