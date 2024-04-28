@@ -1,5 +1,4 @@
 import { createContext, useContext, useState } from "react";
-import Preview from "../preview";
 
 export const CharacterApiContext = createContext();
 
@@ -7,10 +6,30 @@ export const CharacterApiProvider = ({ children }) => {
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const Preview = async (disneyCharacter) => {
+      try {
+        const response = await fetch(`https://api.disneyapi.dev/character?name=${disneyCharacter}`);
+
+        if (!response.ok) {
+            throw new Error("Não foi possível buscar os dados dos personagens");
+        }
+
+        const data = await response.json();
+        return data.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+  }
+
   const contextValue = {
     characters,
     loading,
     Preview 
   };
-  return <CharacterAPiContext.Provider value={{contextValue}}>{children}</CharacterAPiContext.Provider>
+
+  return <CharacterApiContext.Provider value={{Preview, contextValue}}>{children}</CharacterApiContext.Provider>
+
 }
+
+export const useContextValue = () => useContext(CharacterApiProvider)

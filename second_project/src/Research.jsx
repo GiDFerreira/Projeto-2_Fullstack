@@ -1,35 +1,45 @@
-import { useState, Suspense, lazy } from "react";
+import { useState, Suspense, useContext } from "react";
 import Loading from "./loading";
-import Preview from "./preview";
+import { CharacterApiContext, CharacterApiProvider } from "./context/characterContext";
 import { Button } from "./components/button.style";
 import { Input } from "./components/input.style";
 
 function Research() {
-    const { preview, loading, characters } = useContext(CharacterApiContext);
+    const { Preview } = useContext(CharacterApiContext);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [characters, setCharacters] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    /*const [characters, setCharacters] = useState([]);
-    const [loading, setLoading] = useState(false);*/
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         const disneyCharacterInput = document.getElementById("disneyCharacter");
-        const errorMessageElement = document.getElementById("errorMessage");
+        const disneyCharacter = disneyCharacterInput.value.trim().toLowerCase();
         
+        if (disneyCharacter.length < 2 || disneyCharacter.length > 22) {
+            setErrorMessage("O nome do personagem deve ter entre 2 e 22 letras.");
+            return;
+        }
 
         try {
-            const disneyCharacter = disneyCharacterInput.value.trim().toLowerCase();
-            setLoading(true); // Definir o estado de carregamento como true
+            setLoading(true); 
             const data = await Preview(disneyCharacter);
-            setCharacters(data);
-            setLoading(false); // Definir o estado de carregamento como false quando os dados estiverem prontos
+            if (data.length === 0) {
+                setErrorMessage("Nenhum personagem encontrado.");
+            } else {
+                setCharacters(data);
+                setErrorMessage(""); 
+            }
+            setLoading(false); 
         } catch (error) {
             console.error(error);
             errorMessageElement.textContent = "Erro ao buscar os dados dos personagens.";
-            setLoading(false); // Definir o estado de carregamento como false em caso de erro
+            setLoading(false); 
         }
     };
 
     return (
+        <CharacterApiProvider>
         <div className="div-submit">
             <main>
                 <form onSubmit={handleSubmit}>
@@ -40,11 +50,11 @@ function Research() {
                     />
                     <Button>Buscar</Button>
                 </form>
-                <p id="errorMessage"></p>
+                <p id="errorMessage">{errorMessage}</p>
                 </main>
 
                 <div id="charactersContainer">
-                    {loading ? ( // Verificar se está carregando
+                    {loading ? ( 
                         <Loading />
                     ) : (
                         <Suspense fallback={<div>Carregando...</div>}>
@@ -67,6 +77,7 @@ function Research() {
                     )}
                 </div>
             </div>
+        </CharacterApiProvider>
         );
 }
 
