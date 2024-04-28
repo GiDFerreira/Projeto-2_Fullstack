@@ -1,3 +1,4 @@
+import React from "react";
 import Navigation from "./naviBar.jsx"
 import Research from "./Research.jsx"
 
@@ -11,4 +12,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
