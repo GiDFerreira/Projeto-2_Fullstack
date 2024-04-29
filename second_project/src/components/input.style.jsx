@@ -8,6 +8,10 @@ export const Input = styled.input`
     padding: 2px 2px 2px 2px;
     align-items: center;
     margin-left: 655px;
+    
+    &::placeholder{
+        padding-left: 8px;
+    }
 
     
 `

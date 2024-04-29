@@ -38,6 +38,7 @@ function Research() {
         }
     };
 
+
     return (
         <CharacterApiProvider>
         <div className="div-submit">
@@ -53,19 +54,19 @@ function Research() {
                 <p id="errorMessage">{errorMessage}</p>
                 </main>
 
-                <div id="charactersContainer">
+                <div id="charactersContainer" className="charactersContainer">
                     {loading ? ( 
                         <Loading />
                     ) : (
                         <Suspense fallback={<div>Carregando...</div>}>
                             {characters.map((character, index) => (
-                                <div key={index}>
+                                <div key={index} className="divFilm">
                                     <h2>{character.name}</h2>
-                                    <img src={character.imageUrl} alt={character.name} />
-                                    <ul>
+                                    <img src={character.imageUrl} alt={character.name} className="imgFilm" />
+                                    <ul className="filmUl">
                                         {character.films && character.films.length > 0 ? (
                                             character.films.map((film, index) => (
-                                                <li key={index}>{film}</li>
+                                                <li key={index} className="filmLi">{film}</li>
                                             ))
                                         ) : (
                                             <li>Esse personagem não possui filmes</li>
